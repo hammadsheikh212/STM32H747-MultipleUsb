@@ -115,7 +115,16 @@ HAL_StatusTypeDef program_flash(uint32_t address, const unsigned char *data, uin
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    	 printf("Callback \n\r");
+    if(GPIO_Pin == GPIO_PIN_8)
+    {
+    	printf("Callback btn\n\r");
+    	doJump = 1;
+    	// HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -127,8 +136,8 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
 
-//	printf("-------------Bootloader User Begin 1 -------------\n\r");
-	doJump = 1;
+	printf("-------------Bootloader User Begin 1 -------------\n\r");
+	doJump = 0;
 //	///////////////////////////////////////////////////////////////////////////////////
 //	  printf("Jumping to Firmware  ... \n\r");
 //	  dfu_boot_flag = (uint32_t*) (&_bflag); // set in linker script
@@ -259,7 +268,7 @@ Error_Handler();
   {
 
 //      HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_11); // Toggle PA11
-//      HAL_Delay(500); // Delay for 500 ms
+      HAL_Delay(500); // Delay for 500 ms
 
 	  if(doJump){
 		  doJump = 0;
@@ -479,6 +488,12 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin : PB8 */
+  GPIO_InitStruct.Pin = GPIO_PIN_8;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
   /*Configure GPIO pin : CEC_CK_MCO1_Pin */
   GPIO_InitStruct.Pin = CEC_CK_MCO1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -493,6 +508,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
