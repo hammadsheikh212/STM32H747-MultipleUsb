@@ -81,6 +81,7 @@ extern int _bflag;
 uint32_t *dfu_boot_flag;
 pFunction JumpToApplication;
 uint32_t JumpAddress;
+int doJump = 1;
 
 uint32_t end_address = 0x080AC298;
 uint32_t stored_crc;
@@ -126,233 +127,27 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
 
-//	// Calculate CRC from 0x080A0000 to firmware end
-//		    uint32_t start_address = 0x080A0000;
-//		    uint32_t end_address = 0x080AC298;
-//		    uint32_t stored_crc = *(uint32_t *)0x080AC29C;
-
-//	// Ensure end_address is valid
-//	 if (end_address > start_address && end_address <= 0x080fffff) {
-//     uint32_t crc_result = calculate_crc32(start_address, end_address);
-//	 // Use crc_result (e.g., compare with stored CRC for validation)
-//	 printf("crc result: %08X \n\r", crc_result);
-//     printf("end address: 0x%08X \n\r", end_address);
-//      }
+//	printf("-------------Bootloader User Begin 1 -------------\n\r");
+	doJump = 1;
+//	///////////////////////////////////////////////////////////////////////////////////
+//	  printf("Jumping to Firmware  ... \n\r");
+//	  dfu_boot_flag = (uint32_t*) (&_bflag); // set in linker script
 //
-//	 printf("crc stored: %08X \n\r", stored_crc);
-
-	// Enable CRC clock
-//	    __HAL_RCC_CRC_CLK_ENABLE();
-
-	// Initialize CRC before any jump
-//	MX_CRC_Init();
-
-//	    // Calculate CRC of the application (excluding the CRC value)
-//	      uint32_t computed_crc = CalculateCRC(APP2_ADDRESS, APP_SIZE - 8); // Exclude last 8 bytes (4 bytes before CRC + 4 bytes CRC
+//	  if (*dfu_boot_flag != DFU_BOOT_FLAG) {
 //
-//	          printf("Calculated CRC: %08X \n\r", computed_crc); // 0x%08x
+//	      /* Test if user code is programmed starting from address 0x08000000 */
+//	      if (((*(__IO uint32_t*) USBD_DFU_APP_DEFAULT_ADD) & 0x2FF80000) == 0x24000000) {
 //
-//	      // Read the stored CRC from the binary
-//	      uint32_t stored_crc = *(volatile uint32_t*)(APP2_ADDRESS + CRC_ADDRESS_OFFSET);
-
-//	          printf("Stored CRC: 0x%08x \n\r", stored_crc);
-
-	          // Read stored CRC
-//	          uint32_t stored_crc = *(__IO uint32_t *)(APP2_ADDRESS + CRC_ADDRESS_OFFSET);
-//	          printf("Stored CRC: 0x%08X\r\n", stored_crc);
-
-	 /* Configure the MPU attributes */
-//	  MPU_Config();
-
-	  /* Enable the CPU Cache */
-//	  CPU_CACHE_Enable();
-
-	printf("-------------Bootloader User Begin 1 -------------\n\r");
-
-	///////////////////////////////////////////////////////////////////////////////////
-
-//	// Check and jump to applications (comment this block for USB DFU upload)
-//	    if (Verify_Application(APP1_ADDRESS)){
+//	          /* Jump to user application */
+//	          JumpAddress = *(__IO uint32_t*) (USBD_DFU_APP_DEFAULT_ADD + 4);
+//	          JumpToApplication = (pFunction) JumpAddress;
 //
-	  printf("Jumping to Firmware\n\r");
-	  dfu_boot_flag = (uint32_t*) (&_bflag); // set in linker script
-
-	  if (*dfu_boot_flag != DFU_BOOT_FLAG) {
-
-	      /* Test if user code is programmed starting from address 0x08000000 */
-	      if (((*(__IO uint32_t*) USBD_DFU_APP_DEFAULT_ADD) & 0x2FF80000) == 0x24000000) {
-
-	          /* Jump to user application */
-	          JumpAddress = *(__IO uint32_t*) (USBD_DFU_APP_DEFAULT_ADD + 4);
-	          JumpToApplication = (pFunction) JumpAddress;
-
-	          /* Initialize user application's Stack Pointer */
-	          __set_MSP(*(__IO uint32_t*) USBD_DFU_APP_DEFAULT_ADD);
-	          JumpToApplication();
-	      }
-	  }
-	    *dfu_boot_flag=0;
-//
-//	    }
-
-//	    	printf("Jumping to Second Firmware\n\r");
-//
-//	    	printf("h7 decrypting code \n\r");
-//
-//	    	MX_MBEDTLS_Init();
-//
-//	    	// The key (same as in Python script)
-//	    	 unsigned char key[16] = {
-//	    	  0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37,
-//	    	  0x38, 0x39, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35
-//	    	  };
-//
-//	     // Read encrypted data from flash
-//	     unsigned char *encrypted_data = (unsigned char *)FLASH_ADDRESS;
-//	     size_t encrypted_len = ENCRYPTED_DATA_SIZE;
-//
-//	     //      unsigned char encrypted_data[] = {
-//	     //      0xE0, 0xBB, 0x78, 0xC4, 0x35, 0x37, 0x3C, 0xF6,
-//	     //      0x8E, 0x4D, 0xBB, 0x03, 0x80, 0xF1, 0x3D, 0x97,
-//	     //      0xEC, 0x3D, 0xB7, 0x55, 0xAF, 0x8B, 0x18, 0xE7,
-//	     //      0x1E, 0xFE, 0xF2, 0x05, 0x45, 0x45, 0x47, 0xC1
-//	     //            };
-//	     //     size_t encrypted_len = sizeof(encrypted_data);
-//
-//	     // Buffer for decrypted data
-//	     unsigned char decrypted_data[ENCRYPTED_DATA_SIZE];
-//	     memset(decrypted_data, 0, sizeof(decrypted_data));
-//
-//	     // Expected decrypted data (first 32 bytes from your provided padded_data)
-//	     const unsigned char expected[] = {
-//	     0xFC, 0xFF, 0x07, 0x24, 0xD9, 0x0E, 0x0A, 0x08,
-//	     0xE1, 0x0C, 0x0A, 0x08, 0xE9, 0x0C, 0x0A, 0x08,
-//	     0xF1, 0x0C, 0x0A, 0x08, 0xF9, 0x0C, 0x0A, 0x08,
-//	     0x01, 0x0D, 0x0A, 0x08, 0x00, 0x00, 0x00, 0x00
-//	    };
-//
-//	     // Expected decrypted data (first 32 bytes from your provided padded_data)
-//	     const unsigned char decrypted_expected[] = {
-//	      0xFC, 0xFF, 0x07, 0x24
-//	    };
-//
-//	    // Initialize mbedTLS AES context
-//	    mbedtls_aes_context aes;
-//	    mbedtls_aes_init(&aes);
-//
-//	    // Set decryption key
-//	    if (mbedtls_aes_setkey_dec(&aes, key, 128) != 0) {
-//	     printf("Error: Failed to set decryption key\n");
-//	     mbedtls_aes_free(&aes);
-//	     while (1);
-//	    }
-//
-//	    // Decrypt the data (ECB mode, block-by-block)
-//	    for (size_t i = 0; i < encrypted_len; i += 16) {
-//	    if (mbedtls_aes_crypt_ecb(&aes, MBEDTLS_AES_DECRYPT, &encrypted_data[i], &decrypted_data[i]) != 0) {
-//	     printf("Error: Decryption failed\n");
-//	    mbedtls_aes_free(&aes);
-//	     while (1);
-//	     }
-//	   }
-//
-//	   // Free AES context
-//	   mbedtls_aes_free(&aes);
-//
-//	   // Print the decrypted data (first 32 bytes for verification)
-//	   print_string("Decrypted data: ", decrypted_data, encrypted_len);
-//
-//	   // Verify the first 32 bytes against expected
-////	   if (memcmp(decrypted_data, expected, EXPECTED_SUBSET_SIZE) == 0) {
-////	   printf("Success: First %d bytes of decrypted data match expected!\n", EXPECTED_SUBSET_SIZE);
-////	   } else {
-////	   printf("Error: First %d bytes of decrypted data do not match expected\n", EXPECTED_SUBSET_SIZE);
-////	   }
-//
-//if(memcmp(decrypted_data, decrypted_expected, 4) == 0){
-//
-// printf("writing the decrypted data to flash!\n");
-//
-//	   // Erase internal flash sectors
-//	   	   if (erase_flash_sectors(FLASH_ADDRESS, ENCRYPTED_DATA_SIZE) != HAL_OK) {
-//	   	    while (1);
-//	   	   }
-//
-//	   	   // Program decrypted data to internal flash
-//	   	   if (program_flash(FLASH_ADDRESS, decrypted_data, ENCRYPTED_DATA_SIZE) != HAL_OK) {
-//	   	   while (1);
-//	   	   }
-//}
-//	   	   // Verify written data by reading back (optional)
-//	   	   unsigned char *flash_data = (unsigned char *)FLASH_ADDRESS;
-//	   	   print_string("Flash data at 0x080A0000: ", flash_data, encrypted_len);
-//
-//	   	   if (memcmp(flash_data, decrypted_expected, 4) == 0) {
-//	   	   printf("flash data already written! no need to write it again \n", 4);
-//	   	   }
-//	   	   else {
-//	   	   printf("invalid flash data written! need to write it again \n", 4);
-//	   	   }
-//
-//	    dfu_boot_flag = (uint32_t*) (&_bflag); // set in linker script
-//
-//	    if (*dfu_boot_flag != DFU_BOOT_FLAG) {
-//
-//	     /* Test if user code is programmed starting from address 0x08000000 */
-//	     if (((*(__IO uint32_t*) 0x080A0000) & 0x2FF80000) == 0x24000000) {
-//
-//	    /* Jump to user application */
-//	    JumpAddress = *(__IO uint32_t*) (0x080A0000 + 4);
-//	    JumpToApplication = (pFunction) JumpAddress;
-//
-//	     /* Initialize user application's Stack Pointer */
-//	      __set_MSP(*(__IO uint32_t*) 0x080A0000);
-//
-//	    // Ensure end_address is valid
-////	     if (end_address > 0x080A0000 && end_address <= 0x080fffff) {
-////	     uint32_t crc_result = calculate_crc32(0x080A0000, end_address);
-//	     // Use crc_result (e.g., compare with stored CRC for validation)
-////	      printf("crc result: %08X \n\r", crc_result);
-////	       printf("end address: 0x%08X \n\r", end_address);
-////	      }
-//
-//	   search_end_address();
-//
-//	   search_crc_value();
-//
-//	  // CRC matches, jump to application
-//	  if (found)
-//	   {
-//
-//	  JumpToApplication();
+//	          /* Initialize user application's Stack Pointer */
+//	          __set_MSP(*(__IO uint32_t*) USBD_DFU_APP_DEFAULT_ADD);
+//	          JumpToApplication();
+//	      }
 //	  }
-//   }
-//
-//       // CRC does not match, jump to application
-//	   if (!found){
-//
-//	   printf("Jumping to first application Firmware\n\r");
-//
-//	   printf("Stack pointer: 0x%08lX\n", *(__IO uint32_t*)USBD_DFU_APP_DEFAULT_ADD);
-//
-//	   /* Test if user code is programmed starting from address 0x08000000 */
-//	    if (((*(__IO uint32_t*) USBD_DFU_APP_DEFAULT_ADD) & 0x2FF80000) == 0x24000000) {
-//
-//	    /* Jump to user application */
-//	    JumpAddress = *(__IO uint32_t*) (USBD_DFU_APP_DEFAULT_ADD + 4);
-//	    JumpToApplication = (pFunction) JumpAddress;
-//
-//	    /* Initialize user application's Stack Pointer */
-//	    __set_MSP(*(__IO uint32_t*) USBD_DFU_APP_DEFAULT_ADD);
-//	    JumpToApplication();
-//	    }
-//
-//      }
-//
-//   }
-//        *dfu_boot_flag=0;
-
-	/////////////////////////////////////////////////////////////////////////////////
+//	    *dfu_boot_flag=0;
 
   /* USER CODE END 1 */
 /* USER CODE BEGIN Boot_Mode_Sequence_0 */
@@ -414,91 +209,48 @@ Error_Handler();
 
   /* -2- Unlock the Flash to enable the flash control register access
    * ************ */
-  HAL_FLASH_Unlock();
-
-  printf("-------------Bootloader User Begin 2 -------------\n\r");
-
-//  HAL_PWREx_EnableUSBVoltageDetector(); // no hard fault
+//  HAL_FLASH_Unlock();
 //
-//  	    /* Otherwise enters DFU mode to allow user programming his application */
-//  	    /* Init Device Library */
-//  	    USBD_Init(&USBD_Device, &HS_Desc, 0); // no hard fault
-////
-//  	    /* Add Supported Class */
-//  	    USBD_RegisterClass(&USBD_Device, USBD_DFU_CLASS); // no hard fault
-////
-//  	    /* Add DFU Media interface */
-//  	    USBD_DFU_RegisterMedia(&USBD_Device, &USBD_DFU_Flash_fops); // no hard fault
-////
-//  	    /* Start Device Process */
-//  	    USBD_Start(&USBD_Device); // yaha masla hai, yes hard fault
-
-//  	    MX_USB_DEVICE_Init();
-
-    if (USBD_Init(&hUsbDeviceHS, &HS_Desc, DEVICE_HS) != USBD_OK) // DEVICE_HS, pehla change
-    {
-      Error_Handler();
-    }
-    if (USBD_RegisterClass(&hUsbDeviceHS, USBD_DFU_CLASS) != USBD_OK) // &USBD_DFU, dusra change
-    {
-      Error_Handler();
-    }
-    if (USBD_DFU_RegisterMedia(&hUsbDeviceHS, &USBD_DFU_Flash_fops) != USBD_OK) // &USBD_DFU_fops_HS, teesra change
-    {
-      Error_Handler();
-    }
-    if (USBD_Start(&hUsbDeviceHS) != USBD_OK)
-    {
-      Error_Handler();
-    }
-
-    HAL_PWREx_EnableUSBVoltageDetector();
-
-//    	  printf("Jumping to Firmware\n\r");
-//    	  dfu_boot_flag = (uint32_t*) (&_bflag); // set in linker script
+//  printf("-------------Bootloader User Begin 2 -------------\n\r");
 //
-//    	  if (*dfu_boot_flag != DFU_BOOT_FLAG) {
+//    if (USBD_Init(&hUsbDeviceHS, &HS_Desc, DEVICE_HS) != USBD_OK) // DEVICE_HS, pehla change
+//    {
+//      Error_Handler();
+//    }
+//    if (USBD_RegisterClass(&hUsbDeviceHS, USBD_DFU_CLASS) != USBD_OK) // &USBD_DFU, dusra change
+//    {
+//      Error_Handler();
+//    }
+//    if (USBD_DFU_RegisterMedia(&hUsbDeviceHS, &USBD_DFU_Flash_fops) != USBD_OK) // &USBD_DFU_fops_HS, teesra change
+//    {
+//      Error_Handler();
+//    }
+//    if (USBD_Start(&hUsbDeviceHS) != USBD_OK)
+//    {
+//      Error_Handler();
+//    }
 //
-//    	      /* Test if user code is programmed starting from address 0x08000000 */
-//    	      if (((*(__IO uint32_t*) USBD_DFU_APP_DEFAULT_ADD) & 0x2FF80000) == 0x24000000) {
-//
-////    	    	  uint32_t app_stack = *(__IO uint32_t*) APP_BASE_ADDR;
-//
-//    	          /* Jump to user application */
-//    	          JumpAddress = *(__IO uint32_t*) (USBD_DFU_APP_DEFAULT_ADD + 4);
-//    	          JumpToApplication = (pFunction) JumpAddress;
-//
-//    	            // --- Cleanup: ensure STM32 can jump cleanly to app ---
-//
-//    	            __disable_irq();              // Disable global interrupts
-//
-//    	            SysTick->CTRL = 0;            // Stop SysTick
-//    	            SysTick->LOAD = 0;
-//    	            SysTick->VAL = 0;
-//
-//    	            HAL_RCC_DeInit();             // Reset RCC to default state
-//    	            HAL_DeInit();                 // Reset all HAL drivers
-//
-//    	            SCB_DisableICache();          // Optional, clean reset
-//    	            SCB_DisableDCache();          // Optional, clean reset
-//
-//    	            SCB->VTOR = USBD_DFU_APP_DEFAULT_ADD;    // Set vector table base to app
-//
-////    	            __set_MSP(app_stack);         // Set main stack pointer to app's
-//
-//    	          /* Initialize user application's Stack Pointer */
-//    	          __set_MSP(*(__IO uint32_t*) USBD_DFU_APP_DEFAULT_ADD);
-//    	          JumpToApplication();
-//    	      }
-//    	  }
-//    	    *dfu_boot_flag=0;
+//    HAL_PWREx_EnableUSBVoltageDetector();
 
 
-// 	  for (int x = 0; x < 10000; x++) {
-// 	      HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_11); // Toggle PA11
-// 	      HAL_Delay(50);                          // Delay 50 ms
-// 	  }
-
+//    printf("Jumping to Firmware 2\n\r");
+//    		 	  dfu_boot_flag = (uint32_t*) (&_bflag); // set in linker script
+//
+//    		 	  if (*dfu_boot_flag != DFU_BOOT_FLAG) {
+//
+//    		 	      /* Test if user code is programmed starting from address 0x08000000 */
+//    		 	      if (((*(__IO uint32_t*) USBD_DFU_APP_DEFAULT_ADD) & 0x2FF80000) == 0x24000000) {
+//
+//    		 	          /* Jump to user application */
+//    		 	          JumpAddress = *(__IO uint32_t*) (USBD_DFU_APP_DEFAULT_ADD + 4);
+//    		 	          JumpToApplication = (pFunction) JumpAddress;
+//
+//    		 	          /* Initialize user application's Stack Pointer */
+//    		 	          __set_MSP(*(__IO uint32_t*) USBD_DFU_APP_DEFAULT_ADD);
+//    		 	          JumpToApplication();
+//    		 	      }
+//    		 	  }
+//    		 	    *dfu_boot_flag=0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -508,6 +260,28 @@ Error_Handler();
 
 //      HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_11); // Toggle PA11
 //      HAL_Delay(500); // Delay for 500 ms
+
+	  if(doJump){
+		  doJump = 0;
+		  printf("Jumping to Firmware\n\r");
+		 	  dfu_boot_flag = (uint32_t*) (&_bflag); // set in linker script
+
+		 	  if (*dfu_boot_flag != DFU_BOOT_FLAG) {
+
+		 	      /* Test if user code is programmed starting from address 0x08000000 */
+		 	      if (((*(__IO uint32_t*) USBD_DFU_APP_DEFAULT_ADD) & 0x2FF80000) == 0x24000000) {
+
+		 	          /* Jump to user application */
+		 	          JumpAddress = *(__IO uint32_t*) (USBD_DFU_APP_DEFAULT_ADD + 4);
+		 	          JumpToApplication = (pFunction) JumpAddress;
+
+		 	          /* Initialize user application's Stack Pointer */
+		 	          __set_MSP(*(__IO uint32_t*) USBD_DFU_APP_DEFAULT_ADD);
+		 	          JumpToApplication();
+		 	      }
+		 	  }
+		 	    *dfu_boot_flag=0;
+	  }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
