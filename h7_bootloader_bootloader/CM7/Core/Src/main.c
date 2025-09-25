@@ -82,6 +82,7 @@ uint32_t *dfu_boot_flag;
 pFunction JumpToApplication;
 uint32_t JumpAddress;
 int doJump = 1;
+int doJump2 = 1;
 
 uint32_t end_address = 0x080AC298;
 uint32_t stored_crc;
@@ -124,6 +125,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     	doJump = 1;
     	// HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
     }
+    if(GPIO_Pin == GPIO_PIN_9)
+        {
+        	printf("Callback2 btn\n\r");
+        	doJump2 = 1;
+        	// HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
+        }
 }
 /* USER CODE END 0 */
 
@@ -138,6 +145,7 @@ int main(void)
 
 	printf("-------------Bootloader User Begin 1 -------------\n\r");
 	doJump = 0;
+	doJump2=0;
 //	///////////////////////////////////////////////////////////////////////////////////
 //	  printf("Jumping to Firmware  ... \n\r");
 //	  dfu_boot_flag = (uint32_t*) (&_bflag); // set in linker script
@@ -291,10 +299,32 @@ Error_Handler();
 		 	  }
 		 	    *dfu_boot_flag=0;
 	  }
+	  if(doJump2){
+	  		  doJump2 = 0;
+	  		  printf("Jumping to Firmware2\n\r");
+	  		 	  dfu_boot_flag = (uint32_t*) (&_bflag); // set in linker script
+
+	  		 	  if (*dfu_boot_flag != DFU_BOOT_FLAG) {
+
+	  		 	      /* Test if user code is programmed starting from address 0x08000000 */
+	  		 	      if (((*(__IO uint32_t*) 0x080a0000) & 0x2FF80000) == 0x24000000) {
+
+	  		 	          /* Jump to user application */
+	  		 	          JumpAddress = *(__IO uint32_t*) (0x080a0000 + 4);
+	  		 	          JumpToApplication = (pFunction) JumpAddress;
+
+	  		 	          /* Initialize user application's Stack Pointer */
+	  		 	          __set_MSP(*(__IO uint32_t*) 0x080a0000);
+	  		 	          JumpToApplication();
+	  		 	      }
+	  		 	  }
+//	  		 	    *dfu_boot_flag=0;
+	  }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+}
   /* USER CODE END 3 */
 }
 
@@ -488,8 +518,8 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : PB8 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8;
+  /*Configure GPIO pins : PB9 PB8 */
+  GPIO_InitStruct.Pin = GPIO_PIN_9|GPIO_PIN_8;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
