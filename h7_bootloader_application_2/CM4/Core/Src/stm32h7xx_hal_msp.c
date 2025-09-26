@@ -216,7 +216,6 @@ void HAL_DFSDM_ChannelMspInit(DFSDM_Channel_HandleTypeDef* hdfsdm_channel)
     /**DFSDM1 GPIO Configuration
     PD3     ------> DFSDM1_CKOUT
     PB9     ------> DFSDM1_DATIN7
-    PB8     ------> DFSDM1_CKIN7
     PC7     ------> DFSDM1_DATIN3
     */
     GPIO_InitStruct.Pin = PMOD_18_DFSDM_CKOUT_Pin;
@@ -226,12 +225,12 @@ void HAL_DFSDM_ChannelMspInit(DFSDM_Channel_HandleTypeDef* hdfsdm_channel)
     GPIO_InitStruct.Alternate = GPIO_AF3_DFSDM1;
     HAL_GPIO_Init(PMOD_18_DFSDM_CKOUT_GPIO_Port, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = PMOD_19_DFSDM_DATA7_Pin|PMOD_20_DFSDM_CK7_Pin;
+    GPIO_InitStruct.Pin = PMOD_19_DFSDM_DATA7_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF3_DFSDM1;
-    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+    HAL_GPIO_Init(PMOD_19_DFSDM_DATA7_GPIO_Port, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = PMOD_17_DFSDM_DATA3_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -269,12 +268,11 @@ void HAL_DFSDM_ChannelMspDeInit(DFSDM_Channel_HandleTypeDef* hdfsdm_channel)
     /**DFSDM1 GPIO Configuration
     PD3     ------> DFSDM1_CKOUT
     PB9     ------> DFSDM1_DATIN7
-    PB8     ------> DFSDM1_CKIN7
     PC7     ------> DFSDM1_DATIN3
     */
     HAL_GPIO_DeInit(PMOD_18_DFSDM_CKOUT_GPIO_Port, PMOD_18_DFSDM_CKOUT_Pin);
 
-    HAL_GPIO_DeInit(GPIOB, PMOD_19_DFSDM_DATA7_Pin|PMOD_20_DFSDM_CK7_Pin);
+    HAL_GPIO_DeInit(PMOD_19_DFSDM_DATA7_GPIO_Port, PMOD_19_DFSDM_DATA7_Pin);
 
     HAL_GPIO_DeInit(PMOD_17_DFSDM_DATA3_GPIO_Port, PMOD_17_DFSDM_DATA3_Pin);
 

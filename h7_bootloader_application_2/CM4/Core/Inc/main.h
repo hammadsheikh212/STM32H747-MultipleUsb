@@ -119,8 +119,6 @@ void Error_Handler(void);
 #define SAI1_SD_B_GPIO_Port GPIOE
 #define PMOD_19_DFSDM_DATA7_Pin GPIO_PIN_9
 #define PMOD_19_DFSDM_DATA7_GPIO_Port GPIOB
-#define PMOD_20_DFSDM_CK7_Pin GPIO_PIN_8
-#define PMOD_20_DFSDM_CK7_GPIO_Port GPIOB
 #define FMC_SDCAS_Pin GPIO_PIN_15
 #define FMC_SDCAS_GPIO_Port GPIOG
 #define QSPI_BK2_IO3_Pin GPIO_PIN_14

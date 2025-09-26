@@ -41,7 +41,8 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+#define DFU_BOOT_FLAG 0xDEADBEEF
+typedef void (*pFunction)(void);
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -51,7 +52,11 @@ CRC_HandleTypeDef hcrc;
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-
+ int _bflag;
+uint32_t *dfu_boot_flag;
+pFunction JumpToApplication;
+uint32_t JumpAddress;
+int jumpToBootloader;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -66,7 +71,16 @@ static void MX_CRC_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    	 printf("Callback \n\r");
+    if(GPIO_Pin == GPIO_PIN_8)
+    {
+    	printf("Callback btn\n\r");
+    	jumpToBootloader = 1;
+    	// HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
+    }
+}
 /* USER CODE END 0 */
 
 /**
@@ -77,8 +91,9 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+	jumpToBootloader=0;
 	 printf("inside the primary region \n\r");
+
 
   /* USER CODE END 1 */
 /* USER CODE BEGIN Boot_Mode_Sequence_0 */
@@ -147,6 +162,28 @@ HAL_HSEM_Release(HSEM_ID_0,0);
   {
       HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_11); // Toggle PA11
       HAL_Delay(100); // Delay for 500 ms
+
+      if(jumpToBootloader){
+    	  jumpToBootloader=0;
+    	  printf("Jumping to Bootloader\n\r");
+    	  	 dfu_boot_flag = (uint32_t*) (&_bflag); // set in linker script
+
+    	  	 if (*dfu_boot_flag != DFU_BOOT_FLAG) {
+
+    	  	 /* Test if user code is programmed starting from address 0x08000000 */
+    	  	 if (((*(__IO uint32_t*) 0x08000000) & 0x2FF80000) == 0x24000000) {
+
+    	  		 /* Jump to user application */
+    	  		 JumpAddress = *(__IO uint32_t*) (0x08000000 + 4);
+    	  		 JumpToApplication = (pFunction) JumpAddress;
+
+    	  		 /* Initialize user application's Stack Pointer */
+    	  		 __set_MSP(*(__IO uint32_t*) 0x08000000);
+    	  		 JumpToApplication();
+    	  	 	 }
+    	  	 }
+    	  	 *dfu_boot_flag=0;
+      }
       //printf("Task \n\r");
     /* USER CODE END WHILE */
 
@@ -345,6 +382,12 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, GPIO_PIN_11, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin : PB8 */
+  GPIO_InitStruct.Pin = GPIO_PIN_8;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
   /*Configure GPIO pin : CEC_CK_MCO1_Pin */
   GPIO_InitStruct.Pin = CEC_CK_MCO1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -359,6 +402,10 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 

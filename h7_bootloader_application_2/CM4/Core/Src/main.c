@@ -77,7 +77,6 @@ ADC_HandleTypeDef hadc3;
 
 DFSDM_Channel_HandleTypeDef hdfsdm1_channel0;
 DFSDM_Channel_HandleTypeDef hdfsdm1_channel3;
-DFSDM_Channel_HandleTypeDef hdfsdm1_channel7;
 
 ETH_HandleTypeDef heth;
 
@@ -417,23 +416,6 @@ static void MX_DFSDM1_Init(void)
   hdfsdm1_channel3.Init.Offset = 0;
   hdfsdm1_channel3.Init.RightBitShift = 0x00;
   if (HAL_DFSDM_ChannelInit(&hdfsdm1_channel3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  hdfsdm1_channel7.Instance = DFSDM1_Channel7;
-  hdfsdm1_channel7.Init.OutputClock.Activation = ENABLE;
-  hdfsdm1_channel7.Init.OutputClock.Selection = DFSDM_CHANNEL_OUTPUT_CLOCK_SYSTEM;
-  hdfsdm1_channel7.Init.OutputClock.Divider = 2;
-  hdfsdm1_channel7.Init.Input.Multiplexer = DFSDM_CHANNEL_EXTERNAL_INPUTS;
-  hdfsdm1_channel7.Init.Input.DataPacking = DFSDM_CHANNEL_STANDARD_MODE;
-  hdfsdm1_channel7.Init.Input.Pins = DFSDM_CHANNEL_SAME_CHANNEL_PINS;
-  hdfsdm1_channel7.Init.SerialInterface.Type = DFSDM_CHANNEL_SPI_RISING;
-  hdfsdm1_channel7.Init.SerialInterface.SpiClock = DFSDM_CHANNEL_SPI_CLOCK_EXTERNAL;
-  hdfsdm1_channel7.Init.Awd.FilterOrder = DFSDM_CHANNEL_FASTSINC_ORDER;
-  hdfsdm1_channel7.Init.Awd.Oversampling = 1;
-  hdfsdm1_channel7.Init.Offset = 0;
-  hdfsdm1_channel7.Init.RightBitShift = 0x00;
-  if (HAL_DFSDM_ChannelInit(&hdfsdm1_channel7) != HAL_OK)
   {
     Error_Handler();
   }
